@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# self
+libuv-v1.19.2

@@ -1,19 +1,27 @@
-//
+//g++ -fpermissive -I../include main.cpp -L../lib -luv -lpthread
 #include <stdio.h>
 #include <stdlib.h>
 #include <uv.h>
 #include <curl/curl.h>
 
+#include <iostream>
+#include <string>
+#include <map>
+
+using namespace std;
+
 uv_loop_t *loop;
 CURLM *curl_handle;
 uv_timer_t timeout;
+
+map<string,string> mapResp;
 
 typedef struct curl_context_s{
     uv_poll_t poll_handle;
     curl_socket_t sockfd;
 } curl_context_t;
 
-static curl_context_t* create_url_context(curl_socket_t sockfd)
+static curl_context_t* create_curl_context(curl_socket_t sockfd)
 {
     curl_context_t *context;
     context = (curl_context_t *) malloc(sizeof(*context));
@@ -35,9 +43,27 @@ static void destroy_curl_context(curl_context_t *context)
     uv_close((uv_handle_t *) &context->poll_handle, curl_close_cb);
 }
 
+static size_t curl_write_cb(char *d, size_t n, size_t l, void *p)
+{
+    CURL *handle = (CURL*)p;
+    char *cur_curl;
+    curl_easy_getinfo(handle, CURLINFO_EFFECTIVE_URL, &cur_curl);
+    mapResp[cur_curl].append(d, n*l);
+    
+    return n*l;
+}
+
 static void https_req(const char *url, int num)
 {
-
+    CURL *handle;
+    
+    handle = curl_easy_init();
+    curl_easy_setopt(handle, CURLOPT_URL, url);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_write_cb);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, handle);
+    curl_multi_add_handle(curl_handle, handle);
+    mapResp.insert(pair<string,string>(string(url),""));
+    fprintf(stderr, "add http url[%s]\n", url);
 }
 
 static void check_multi_info(void)
@@ -53,16 +79,13 @@ static void check_multi_info(void)
         switch(message->msg){
             case CURLMSG_DONE:
                 easy_handle = message->easy_handle;
+                //printf("start====================================\n");
                 curl_easy_getinfo(easy_handle, CURLINFO_EFFECTIVE_URL, &done_url);
-                curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &file);
+                //curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &file);
                 printf("%s DONE\n", done_url);
 
                 curl_multi_remove_handle(curl_handle, easy_handle);
                 curl_easy_cleanup(easy_handle);
-                if (file)
-                {
-                    fclose(file);
-                }
                 break;
             default:
                 fprintf(stderr, "CURLMSG default\n");
@@ -86,6 +109,7 @@ static void curl_perform(uv_poll_t *req, int status, int events)
         flags |= CURL_CSELECT_OUT;
     }
 
+    //printf("111============================================\n");
     context = (curl_context_t *)req->data;
     curl_multi_socket_action(curl_handle, context->sockfd, flags, &running_handles);
     check_multi_info();
@@ -170,8 +194,17 @@ int main(int argc, char **argv)
     curl_multi_setopt(curl_handle, CURLMOPT_TIMERFUNCTION, start_timeout);
 
     //TODO:添加https链
+    while(argc-- > 1){
+        https_req(argv[argc], argc);
+    }
 
     uv_run(loop, UV_RUN_DEFAULT);
     curl_multi_cleanup(curl_handle);
+
+    for(map<string,string>::iterator iter = mapResp.begin(); iter != mapResp.end(); ++iter)
+    {
+        cout << "[" << iter->first << "]:[" << iter->second << "]" << endl;
+        cout << "========================================================" << endl;
+    }
     return 0;
 }

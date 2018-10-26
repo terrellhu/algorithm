@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     {
         cerr << "proc n" << endl;
     }
-    uint64_t n = strtoul(argv[1]);
+    uint64_t n = strtoul(argv[1], NULL, 0);
     cout << "fib=" << Fib(n) << endl;
     return 0;
 }

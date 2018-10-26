@@ -16,20 +16,16 @@ void InitByLtOrder(BTree* root, int arr[]， int length)
     root.data=arr[0];
     BTree* cur = root;
     BTree* child = root->leftChild;
-    int curLevel = 1;
-    //计算总层数
-    int totalLevel = 1;
-    for (int i = 1; ; ++i)
+    int iCurLevel = 1;
+    if (NULL == arr || 0 == length)
     {
-        if ((1 << i) >= length)
-        {
-            totalLevel = i;
-            break;
-        }
+        return;
     }
-    for (int i=1; i < length; curLevel++)
+    //按层初始化
+    int iNodeNum = 0;
+    for (int i = 0; iNodeNum < length; ++iCurLevel)
     {
-        
+        for(int i = 1; i < (1<<i); ++i)
         if (NULL_NODE != arr[i]){
             cur->leftChild = new BTree;
             cur->leftChild->data = arr[i];

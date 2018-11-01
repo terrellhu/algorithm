@@ -3,7 +3,7 @@
 
 using namespace std;
 
-template class<T>
+template < class T >
 void perm(T a[], int k, int n)
 {
     if (k == n-1)
@@ -12,13 +12,11 @@ void perm(T a[], int k, int n)
             cout << a[i];
         cout << endl;
     }
-    while(!vecNumber.empty())
+    for (int i = k; i < n; ++i)
     {
-        string number = vecNumber[0];
-        cout << number << output(vecNumber);
-        vecNumber.erase(vecNumber.begin());
-        perm(vecNumber);
-        
+        T t = a[i];a[i] = a[k];a[k] = t;
+        perm(a, k+1, n);
+        a[k] = a[i];a[i] = t;
     }
     return;
 }
@@ -34,7 +32,7 @@ int main(int argc, char** argv)
     uint64_t a[argc-1] = {0};
     for (int i = 1; i < argc; ++i)
     {
-        a[i] = strtoul(argv[i], NULL, 0);
+        a[i-1] = strtoul(argv[i], NULL, 0);
     }
-    perm(a, 0, sizeof(a));
+    perm(a, 0, argc-1);
 }

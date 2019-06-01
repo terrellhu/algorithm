@@ -15,7 +15,7 @@ public:
         InStack.push(data);
     }
     void Pop(){
-        assert(InStack.empty() || OutStack.empty());
+        assert(!InStack.empty() || !OutStack.empty());
         if (OutStack.empty()){
             while (!InStack.empty()) {
                 OutStack.push(InStack.top());
@@ -26,7 +26,7 @@ public:
     }
 
     T& Front(){
-        assert(InStack.empty() || OutStack.empty());
+        assert(!InStack.empty() || !OutStack.empty());
         if (OutStack.empty()){
             while (!InStack.empty()){
                 OutStack.push(InStack.top());
@@ -36,7 +36,7 @@ public:
         return OutStack.top();
     }
     T& Back(){
-        assert(InStack.empty() || OutStack.empty());
+        assert(!InStack.empty() || !OutStack.empty());
         if (InStack.empty()) {
             while (!OutStack.empty()) {
                 InStack.push(OutStack.top());

@@ -33,3 +33,6 @@
 
 # self
 libuv-v1.19.2
+cmake-build-debug
+.idea
+.vscode

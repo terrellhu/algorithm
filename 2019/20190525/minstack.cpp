@@ -18,7 +18,7 @@ public:
     }
     void Pop(){
         assert(!minStack.empty() && !curStack.empty());
-        if (curStack.top() <= minStack.top()){
+        if (curStack.top() == minStack.top()){
             curStack.pop();
             minStack.pop();
         }else{
